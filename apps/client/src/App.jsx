@@ -1,122 +1,129 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useState } from 'react';
+import { AuthProvider } from './context/AuthContext.jsx';
+import { useAuth } from './context/useAuth.js';
+import { ToastProvider } from './context/ToastContext.jsx';
+import { ToastContainer } from './components/common/ToastContainer.jsx';
 
-function App() {
-  const [count, setCount] = useState(0)
+import { AuthTab } from './components/tabs/AuthTab.jsx';
+import { StudentsTab } from './components/tabs/StudentsTab.jsx';
+import { ExamsTab } from './components/tabs/ExamsTab.jsx';
+import { ResultsTab } from './components/tabs/ResultsTab.jsx';
+import { LeaderboardTab } from './components/tabs/LeaderboardTab.jsx';
+
+import './App.css';
+
+const TABS = [
+  { id: 'auth', label: 'Admin Auth / Setup', icon: '🔐' },
+  { id: 'students', label: 'Students', icon: '🎓' },
+  { id: 'exams', label: 'Exams', icon: '📝' },
+  { id: 'results', label: 'Results', icon: '📊' },
+  { id: 'leaderboard', label: 'Public Leaderboard', icon: '🏆' },
+];
+
+function DashboardLayout() {
+  const [activeTab, setActiveTab] = useState('auth');
+  const { admin, isAuthenticated, logout } = useAuth();
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <div className="dashboard-root">
+      {/* Top Application Header */}
+      <header className="app-header">
+        <div className="header-brand">
+          <div className="brand-logo">
+            <span className="brand-icon">⚡</span>
+          </div>
+          <div className="brand-titles">
+            <h1 className="portal-title">Examination & Evaluation Portal</h1>
+            <span className="portal-subtitle">Assessment & Verification Dashboard</span>
+          </div>
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+        <div className="header-session">
+          {isAuthenticated ? (
+            <div className="header-auth-badge">
+              <span className="auth-pulse-dot"></span>
+              <div className="auth-user-info">
+                <span className="auth-user-name">{admin?.username || 'Administrator'}</span>
+                <span className="auth-user-email">{admin?.email || ''}</span>
+              </div>
+              <button
+                type="button"
+                className="btn btn-outline-danger btn-xs"
+                onClick={logout}
+                title="Sign out of current administrator session"
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <div className="header-guest-badge">
+              <span className="guest-badge-pill">Guest Mode</span>
+              <button
+                type="button"
+                className="btn btn-outline btn-xs"
+                onClick={() => setActiveTab('auth')}
+              >
+                Admin Login
+              </button>
+            </div>
+          )}
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      </header>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      {/* Primary Navigation Tab Bar */}
+      <nav className="tab-navigation-bar" aria-label="Main Navigation">
+        <div className="tab-navigation-track">
+          {TABS.map((tab) => {
+            const isActive = activeTab === tab.id;
+            const isPublic = tab.id === 'leaderboard';
+
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                className={`tab-nav-button ${isActive ? 'tab-nav-active' : ''}`}
+                onClick={() => setActiveTab(tab.id)}
+                role="tab"
+                aria-selected={isActive}
+              >
+                <span className="tab-nav-icon">{tab.icon}</span>
+                <span className="tab-nav-label">{tab.label}</span>
+                {isPublic && <span className="tab-public-indicator">Public</span>}
+                {isActive && <span className="tab-active-indicator" />}
+              </button>
+            );
+          })}
+        </div>
+      </nav>
+
+      {/* Main Tab Content Pane */}
+      <main className="tab-main-content">
+        {activeTab === 'auth' && <AuthTab />}
+        {activeTab === 'students' && <StudentsTab />}
+        {activeTab === 'exams' && <ExamsTab />}
+        {activeTab === 'results' && <ResultsTab />}
+        {activeTab === 'leaderboard' && <LeaderboardTab />}
+      </main>
+
+      {/* System Footer */}
+      <footer className="app-footer">
+        <p>
+          Student Examination Management & Verification Engine &bull; React 19 + Vite &bull; Standardized WireResult Architecture
+        </p>
+      </footer>
+
+      {/* Global Notifications */}
+      <ToastContainer />
+    </div>
+  );
 }
 
-export default App
+export default function App() {
+  return (
+    <ToastProvider>
+      <AuthProvider>
+        <DashboardLayout />
+      </AuthProvider>
+    </ToastProvider>
+  );
+}
