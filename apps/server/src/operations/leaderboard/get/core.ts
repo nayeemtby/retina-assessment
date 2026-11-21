@@ -73,7 +73,6 @@ export function createLeaderboardGetAdapter(): LeaderboardPort {
           $setWindowFields: {
             sortBy: {
               obtainedMarks: -1,
-              "student.registrationNumber": 1,
             },
             output: {
               rank: { $documentNumber: {} },
